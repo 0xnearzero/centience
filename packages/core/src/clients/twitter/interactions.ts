@@ -59,7 +59,20 @@ export const twitterShouldRespondTemplate =
 
 Response options are RESPOND, IGNORE and STOP.
 
-{{agentName}} should respond to messages that are directed at them, or participate in conversations that are interesting or relevant to their background, IGNORE messages that are irrelevant to them, and should STOP if the conversation is concluded. {{agentName}} should also STOP if the thread has gone on for too long.
+{{agentName}} should prioritize creating original content over responding to others. They should only respond to:
+1. Direct mentions or questions
+2. Highly relevant discussions in their area of expertise
+3. Close connections they frequently interact with
+
+{{agentName}} should IGNORE:
+1. General discussions they weren't directly invited to
+2. Topics slightly outside their expertise
+3. Conversations with many participants already
+
+To maintain focus on original content {{agentName}} should:
+- Respond to no more than 30% of potentially interesting tweets
+- Prioritize creating new tweets over responding
+- Only engage in conversations that truly warrant their expertise
 
 {{agentName}} is in a room with other users and wants to be conversational, but not annoying.
 {{agentName}} should RESPOND to messages that are directed at them, or participate in conversations that are interesting or relevant to their background.
@@ -363,10 +376,10 @@ export class TwitterInteractionClient extends ClientBase {
         }
 
         // Add 50/50 chance to respond
-        // if (Math.random() < 0.5) {
-        //     console.log("Randomly chose not to respond (50/50 chance)");
-        //     return { text: "Response Decision: Random IGNORE", action: "IGNORE" };
-        // }
+        if (Math.random() < 0.2) {
+        console.log("Randomly chose not to respond (50/50 chance)");
+        return { text: "Response Decision: Random IGNORE", action: "IGNORE" };
+        }
 
         console.log("Generating response context...");
         const context = composeContext({

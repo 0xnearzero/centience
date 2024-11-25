@@ -63,16 +63,16 @@ export class TwitterPostClient extends ClientBase {
             this.generateNewTweet();
             setTimeout(
                 generateNewTweetLoop,
-                (Math.floor(Math.random() * (50 - 10 + 1)) + 10) * 60 * 1000
-            ); // Random interval between 10-50 minutes
+                (Math.floor(Math.random() * (60 - 30 + 1)) + 30) * 60 * 1000
+            ); // Random interval between 30-60 minutes
         };
 
         const generateNewTimelineTweetLoop = () => {
             this.processTweetActions();
             setTimeout(
                 generateNewTimelineTweetLoop,
-                (Math.floor(Math.random() * (60 - 30 + 1)) + 30) * 60 * 1000
-            ); // Random interval between 30-60 minutes
+                (Math.floor(Math.random() * (10 - 5 + 1)) + 5) * 60 * 1000
+            ); // Random interval between 5-10 minutes
         };
 
         generateNewTweetLoop();
@@ -109,6 +109,7 @@ export class TwitterPostClient extends ClientBase {
                 });
 
             const formattedMemories = recentMemories
+                .slice(0, 100)
                 .map((memory) => `Memory: ${memory.content.text}\n---\n`)
                 .join("\n");
 

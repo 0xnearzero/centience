@@ -32,7 +32,7 @@ export async function initializeClients(
         clients.push(...twitterClients);
     }
 
-    if (clientTypes.includes("discord")) {
+    if (false && clientTypes.includes("discord")) {
         clients.push(startDiscord(runtime));
     }
 
