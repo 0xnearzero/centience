@@ -476,31 +476,31 @@ export class TwitterPostClient extends ClientBase {
     
                         // Reply action
                         if (actionResponse.reply) {
-                                console.log("text reply only started...")
-                                await this.handleTextOnlyReply(tweet, tweetState, executedActions);
-                        }
-    
-                        console.log(`Executed actions for tweet ${tweet.id}:`, executedActions);
-                        
-                        // Store the results for this tweet
-                        results.push({
-                            tweetId: tweet.id,
-                            parsedActions: actionResponse,
-                            executedActions
-                        });
-    
-                    } catch (error) {
-                        console.error(`Error executing actions for tweet ${tweet.id}:`, error);
-                        continue;
+                            console.log("text reply only started...")
+                            await this.handleTextOnlyReply(tweet, tweetState, executedActions);
                     }
-    
+
+                    console.log(`Executed actions for tweet ${tweet.id}:`, executedActions);
+                    
+                    // Store the results for this tweet
+                    results.push({
+                        tweetId: tweet.id,
+                        parsedActions: actionResponse,
+                        executedActions
+                    });
+
                 } catch (error) {
-                    console.error(`Error processing tweet ${tweet.id}:`, error);
+                    console.error(`Error executing actions for tweet ${tweet.id}:`, error);
                     continue;
                 }
+
+            } catch (error) {
+                console.error(`Error processing tweet ${tweet.id}:`, error);
+                continue;
             }
-    
-            return results;
+            }
+
+        return results;
     
         } catch (error) {
             console.error('Error in processTweetActions:', error);

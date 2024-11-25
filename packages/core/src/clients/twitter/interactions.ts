@@ -22,6 +22,14 @@ import { ClientBase } from "./base.ts";
 import { buildConversationThread, sendTweet, wait } from "./utils.ts";
 import { embeddingZeroVector } from "../../core/memory.ts";
 
+export const createInitialConversationContext = (tweet: Tweet) => {
+    const timestamp = new Date(tweet.timestamp * 1000).toLocaleString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        month: 'short',
+        day: 'numeric'
+    });}
+
 export const twitterMessageHandlerTemplate =
     `{{relevantFacts}}
 {{recentFacts}}
@@ -70,7 +78,7 @@ Response options are RESPOND, IGNORE and STOP.
 3. Conversations with many participants already
 
 To maintain focus on original content {{agentName}} should:
-- Respond to no more than 30% of potentially interesting tweets
+- Respond to no more than 15% of potentially interesting tweets
 - Prioritize creating new tweets over responding
 - Only engage in conversations that truly warrant their expertise
 
@@ -375,10 +383,13 @@ export class TwitterInteractionClient extends ClientBase {
             return { text: "Response Decision:", action: shouldRespond };
         }
 
-        // Add 50/50 chance to respond
+        // 20% chance to respond
         if (Math.random() < 0.2) {
-        console.log("Randomly chose not to respond (50/50 chance)");
-        return { text: "Response Decision: Random IGNORE", action: "IGNORE" };
+            console.log("Randomly chose not to respond (20% chance)");
+            return {
+                text: "Response Decision: Random IGNORE",
+                action: "IGNORE",
+            };
         }
 
         console.log("Generating response context...");
