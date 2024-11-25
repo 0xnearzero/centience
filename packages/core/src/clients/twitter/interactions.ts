@@ -22,13 +22,17 @@ import { ClientBase } from "./base.ts";
 import { buildConversationThread, sendTweet, wait } from "./utils.ts";
 import { embeddingZeroVector } from "../../core/memory.ts";
 
-export const createInitialConversationContext = (tweet: Tweet) => {
-    const timestamp = new Date(tweet.timestamp * 1000).toLocaleString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        month: 'short',
-        day: 'numeric'
-    });}
+interface ConversationContext {
+    currentPost: string;
+    formattedConversation: string;
+}
+
+export function createInitialConversationContext(tweet: any): ConversationContext {
+    return {
+        currentPost: `From: @${tweet.username}\nTweet: "${tweet.text}"`,
+        formattedConversation: `@${tweet.username}: ${tweet.text}`
+    };
+}
 
 export const twitterMessageHandlerTemplate =
     `{{relevantFacts}}
