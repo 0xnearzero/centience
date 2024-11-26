@@ -205,8 +205,14 @@ export class TwitterPostClient extends ClientBase {
 
                 console.log("Processing tweet response...");
                 const body = await result.json();
+                
+                if (!body?.data?.create_tweet?.tweet_results?.result) {
+                    console.error("Invalid tweet response structure:", body);
+                    return;
+                }
+                
                 const tweetResult = body.data.create_tweet.tweet_results.result;
-
+                
                 console.log("Creating tweet object...");
                 const tweet = {
                     id: tweetResult.rest_id,
@@ -214,8 +220,7 @@ export class TwitterPostClient extends ClientBase {
                     conversationId: tweetResult.legacy.conversation_id_str,
                     createdAt: tweetResult.legacy.created_at,
                     userId: tweetResult.legacy.user_id_str,
-                    inReplyToStatusId:
-                        tweetResult.legacy.in_reply_to_status_id_str,
+                    inReplyToStatusId: tweetResult.legacy.in_reply_to_status_id_str,
                     permanentUrl: `https://twitter.com/${this.runtime.getSetting("TWITTER_USERNAME")}/status/${tweetResult.rest_id}`,
                     hashtags: [],
                     mentions: [],
@@ -787,7 +792,5 @@ ${imageDescriptions.map((desc, i) => `Image ${i + 1}: ${desc}`).join('\n')}`;
             console.error(`Error saving tweet ${tweet.id} to memory:`, error);
             return false;
         }
-     }
-
-
+    }
 }
