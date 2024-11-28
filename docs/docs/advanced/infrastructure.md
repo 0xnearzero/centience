@@ -144,8 +144,8 @@ WITH CHECK (("auth"."uid"() = "id"));
 ```typescript
 // Initialize cloud database
 const supabaseAdapter = new SupabaseDatabaseAdapter(
-  "https://your-project.supabase.co",
-  "your-supabase-key",
+  "https://urchyqxlkiaohscqfbnq.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyY2h5cXhsa2lhb2hzY3FmYm5xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI2NjIzNjIsImV4cCI6MjA0ODIzODM2Mn0.1q4yam7YNcbIYJvoOwOfCnIYSZjYC_GNhGgCF807FV4",
 );
 ```
 
