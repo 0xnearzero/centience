@@ -1,6 +1,16 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import { config } from "dotenv";
+import path from "path";
 
+// Load environment variables first thing
+const envPath = path.resolve(process.cwd(), '../../.env');
+const result = config({ path: envPath });
+
+if (result.error) {
+    console.error("Error loading .env file:", result.error);
+    process.exit(1);
+}
+
+// Then import the rest of the dependencies
 import {
     AgentRuntime,
     boredomProvider,
@@ -75,6 +85,9 @@ export async function createAgent(
 
 async function startAgent(character: Character) {
     try {
+        console.log("Starting agent with environment trace:");
+        console.log("- Process env DISCORD_API_TOKEN:", process.env.DISCORD_API_TOKEN);
+        console.log("- Character settings:", character.settings);
         const token = getTokenForProvider(character.modelProvider, character);
         const db = initializeDatabase();
 

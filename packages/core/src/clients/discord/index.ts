@@ -36,6 +36,10 @@ export class DiscordClient extends EventEmitter {
 
     constructor(runtime: IAgentRuntime) {
         super();
+        console.log("Discord client initialization - token source trace:");
+        console.log("- From runtime.getSetting():", runtime.getSetting("DISCORD_API_TOKEN"));
+        console.log("- From process.env:", process.env.DISCORD_API_TOKEN);
+        console.log("- From runtime character settings:", runtime.character?.settings?.secrets?.DISCORD_API_TOKEN);
         this.apiToken = runtime.getSetting("DISCORD_API_TOKEN") as string;
         console.log("Discord token length:", this.apiToken?.length);
         console.log("First 5 chars of token:", this.apiToken?.substring(0, 5));

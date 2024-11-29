@@ -48,6 +48,10 @@ function loadEnvConfig() {
     }
     
     console.log(`Loaded .env file from: ${envPath}`);
+    console.log("Settings module initialization");
+    console.log("Initial process.env.DISCORD_API_TOKEN:", process.env.DISCORD_API_TOKEN);
+    console.log("All environment variables:", Object.keys(process.env));
+    
     return process.env;
 }
 

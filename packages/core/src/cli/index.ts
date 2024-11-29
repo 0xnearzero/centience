@@ -1,6 +1,4 @@
 export * from "./config.ts";
-import dotenv from 'dotenv';
-dotenv.config();
 
 import { defaultCharacter } from "../core/defaultCharacter.ts";
 import settings from "../core/settings.ts";
@@ -19,6 +17,7 @@ import { defaultActions } from "../core/actions.ts";
 import { Arguments } from "../types/index.ts";
 import { loadActionConfigs, loadCustomActions } from "./config.ts";
 import { elizaLogger } from "../index.ts";
+import path from "path";
 
 export async function initializeClients(
     character: Character,
@@ -219,6 +218,14 @@ export async function createDirectRuntime(
 
 export function startDiscord(runtime: IAgentRuntime) {
     console.log("Starting Discord client...");
+    console.log("Current working directory:", process.cwd());
+    try {
+        const envPath = path.resolve(process.cwd(), '../../.env');
+        const envContents = fs.readFileSync(envPath, 'utf8');
+        console.log(".env file contents:", envContents);
+    } catch (error) {
+        console.error("Error reading .env file:", error);
+    }
     console.log("Environment DISCORD_API_TOKEN:", process.env.DISCORD_API_TOKEN);
     console.log("Runtime settings:", runtime.character?.settings);
     console.log("Discord token in runtime:", !!runtime.getSetting("DISCORD_API_TOKEN"));
