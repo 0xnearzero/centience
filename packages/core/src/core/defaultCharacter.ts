@@ -7,7 +7,6 @@ export const defaultCharacter: Character = {
     modelProvider: ModelProvider.LLAMACLOUD,
     settings: {
         secrets: {
-            "DISCORD_API_TOKEN": "MTMxMTgzODg0Mzc0NTYwMzY4NA.GSyLwo.CfjNfgHyX_J7O-uuWSoiwODRkdeWnNND73RyQ8"
         },
         voice: {
             model: "en_US-hfc_female-medium",
