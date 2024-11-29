@@ -140,7 +140,7 @@ Implement proper access controls for secret management:
 class SecretAccess {
   private static readonly ALLOWED_KEYS = [
     "OPENAI_API_KEY",
-    "DISCORD_TOKEN",
+    "DISCORD_API_TOKEN",
     // ... other allowed keys
   ];
 

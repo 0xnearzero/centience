@@ -1,4 +1,6 @@
 export * from "./config.ts";
+import dotenv from 'dotenv';
+dotenv.config();
 
 import { defaultCharacter } from "../core/defaultCharacter.ts";
 import settings from "../core/settings.ts";
