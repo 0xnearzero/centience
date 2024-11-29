@@ -37,6 +37,8 @@ export class DiscordClient extends EventEmitter {
     constructor(runtime: IAgentRuntime) {
         super();
         this.apiToken = runtime.getSetting("DISCORD_API_TOKEN") as string;
+        console.log("Discord token length:", this.apiToken?.length);
+        console.log("First 5 chars of token:", this.apiToken?.substring(0, 5));
         this.client = new Client({
             intents: [
                 GatewayIntentBits.Guilds,

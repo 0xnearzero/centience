@@ -32,7 +32,7 @@ export async function initializeClients(
         clients.push(...twitterClients);
     }
 
-    if (false && clientTypes.includes("discord")) {
+    if (clientTypes.includes("discord")) {
         clients.push(startDiscord(runtime));
     }
 
@@ -185,6 +185,9 @@ export async function createDirectRuntime(
     const customActions = await loadCustomActions(actionConfigs);
 
     console.log("Creating runtime for character", character.name);
+    console.log("Character settings:", character.settings);
+    console.log("Environment settings available:", Object.keys(process.env));
+    
     return new AgentRuntime({
         databaseAdapter: db,
         token,
@@ -213,6 +216,10 @@ export async function createDirectRuntime(
 }
 
 export function startDiscord(runtime: IAgentRuntime) {
+    console.log("Starting Discord client...");
+    console.log("Environment DISCORD_API_TOKEN:", process.env.DISCORD_API_TOKEN);
+    console.log("Runtime settings:", runtime.character?.settings);
+    console.log("Discord token in runtime:", !!runtime.getSetting("DISCORD_API_TOKEN"));
     return new Client.DiscordClient(runtime);
 }
 
