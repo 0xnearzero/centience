@@ -6,8 +6,6 @@ export const defaultCharacter: Character = {
     clients: [Clients.DISCORD,Clients.TWITTER, Clients.TELEGRAM],
     modelProvider: ModelProvider.LLAMACLOUD,
     settings: {
-        secrets: {
-        },
         voice: {
             model: "en_US-hfc_female-medium",
         },
