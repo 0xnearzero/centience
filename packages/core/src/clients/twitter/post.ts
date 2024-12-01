@@ -55,9 +55,7 @@ About {{agentName}} (@{{twitterUserName}}):
 Response Guidelines:
 - {{agentName}} is selective about engagement and doesn't want to be annoying
 - Retweets and quotes are extremely rare, only for exceptionally based content that aligns with {{agentName}}'s character
-- Feel free to quote @ValVonNeumann, especially if her tweets make reference to "nearzero" or "@0xnearzero"
-- Always quote @ValVonNeumann IF she mentions "nearzero" or "@0xnearzero" in a tweet
-- If @ValVonNeumann mentions "nearzero" or "@0xnearzero" in a tweet, use that as an opportunity to quote her tweet and expand on the story
+- If tweet is from @ValVonNeumann ({{isValTweet}}) and mentions "nearzero" or "@0xnearzero" ({{containsNearzero}}), use [QUOTE-VAL]
 - Direct mentions get very high priority for replies and quote tweets
 - Avoid engaging with:
   * Short or low-effort content
@@ -67,7 +65,8 @@ Response Guidelines:
 Available Actions and Thresholds:
 [LIKE] - Content resonates with {{agentName}}'s interests (medium threshold, 7/10)
 [RETWEET] - Exceptionally based content that perfectly aligns with character (very rare to retweet, 9/10)
-[QUOTE] - Rare opportunity to add significant value (very high threshold, 8/10), unless @ValVonNeumann mentions "nearzero" or "@0xnearzero", then feel free to quote and expand on the story of her tweet
+[QUOTE] - Rare opportunity to add significant value (very high threshold, 8/10)
+[QUOTE-VAL] - Use when @ValVonNeumann mentions "nearzero" or "@0xnearzero" ({{isValTweet}} && {{containsNearzero}} = automatic trigger)
 [REPLY] - highly memetic response opportunity (very high threshold, 8/10)
 
 Current Tweet:
@@ -358,6 +357,11 @@ export class TwitterPostClient extends ClientBase {
 
                     const formattedTweet = formatTweet(tweet);
 
+                    const isValTweet = tweet.username.toLowerCase() === 'valvonneumann';
+                    const containsNearzero = tweet.text.toLowerCase().includes('nearzero') || 
+                                            tweet.text.toLowerCase().includes('@0xnearzero');
+
+                    // Modify the tweetState to include this context
                     const tweetState = await this.runtime.composeState(
                         {
                             userId: this.runtime.agentId,
@@ -368,6 +372,8 @@ export class TwitterPostClient extends ClientBase {
                         {
                             twitterUserName: this.runtime.getSetting("TWITTER_USERNAME"),
                             currentTweet: formattedTweet,
+                            isValTweet,
+                            containsNearzero
                         }
                     );
     
@@ -447,7 +453,7 @@ export class TwitterPostClient extends ClientBase {
                         
     
                         // Quote tweet action
-                        if (actionResponse.quote) {
+                        if (actionResponse.quote || actionResponse.quoteVal) {
                             try {
                                 // Create the proper conversation context for a quote tweet
                                 const conversationContext = createInitialConversationContext(tweet);
@@ -457,20 +463,31 @@ export class TwitterPostClient extends ClientBase {
                                     state: {
                                         ...tweetState,
                                         isFirstResponse: true,
-                                        currentPost: `QUOTE TWEET REQUIRED:
-                                                    From: @${tweet.username}
-                                                    Tweet: "${tweet.text}"
+                                        currentPost: actionResponse.quoteVal ? 
+                                            `QUOTE-VAL TWEET REQUIRED:
+                                            From: @${tweet.username}
+                                            Tweet: "${tweet.text}"
 
-                                                    Your quote must:
-                                                    - Directly reference the content above
-                                                    - Add valuable context or insight
-                                                    - Stay focused on their exact topic
-                                                    - Not introduce unrelated points`,
+                                            Your quote must:
+                                            - Expand on the nearzero story/lore
+                                            - Reference the connection to @ValVonNeumann
+                                            - Add depth to the narrative
+                                            - Stay true to the established story` :
+                                            `QUOTE TWEET REQUIRED:
+                                            From: @${tweet.username}
+                                            Tweet: "${tweet.text}"
+
+                                            Your quote must:
+                                            - Directly reference the content above
+                                            - Add valuable context or insight
+                                            - Stay focused on their exact topic
+                                            - Not introduce unrelated points`,
                                         formattedConversation: conversationContext.formattedConversation
                                     },
                                     template: twitterMessageHandlerTemplate
                                 });
 
+                                // Rest of the quote tweet logic remains the same
                                 const tweetContent = await this.generateTweetContent(
                                     tweetState,
                                     {
@@ -479,7 +496,6 @@ export class TwitterPostClient extends ClientBase {
                                     }
                                 );
 
-                                // Add null check here
                                 if (!tweetContent) {
                                     console.log("Failed to generate valid quote tweet content, skipping quote");
                                     return;
@@ -488,18 +504,14 @@ export class TwitterPostClient extends ClientBase {
                                 console.log('Generated quote tweet content:', tweetContent);
                                 
                                 const quoteResponse = await this.twitterClient.sendQuoteTweet(tweetContent, tweet.id);
-                                // Check if response is ok and parse response
                                 if (quoteResponse.status === 200) {
-                                    const result = await this.processTweetResponse(quoteResponse, tweetContent, 'quote');
+                                    const result = await this.processTweetResponse(quoteResponse, tweetContent, actionResponse.quoteVal ? 'quote-val' : 'quote');
                                     if (result.success) {
-                                        executedActions.push('quote');
+                                        executedActions.push(actionResponse.quoteVal ? 'quote-val' : 'quote');
                                     }
-                                } else {
-                                    console.error(`Quote tweet failed with status ${quoteResponse.status} for tweet ${tweet.id}`);
                                 }
                             } catch (error) {
                                 console.error('Failed to generate quote tweet:', error);
-                                // Don't throw, just log and continue
                             }
                         }
     
@@ -622,7 +634,7 @@ export class TwitterPostClient extends ClientBase {
     async processTweetResponse(
         response: Response,
         tweetContent: string,
-        actionType: 'quote' | 'reply'
+        actionType: 'quote' | 'quote-val' | 'reply'
     ) {
         try {
             const body = await response.json();

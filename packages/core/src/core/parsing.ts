@@ -1,6 +1,3 @@
-
-import { ActionResponse } from "./types.ts";
-
 const jsonBlockPattern = /```json\n([\s\S]*?)\n```/;
 const htmlBlockPattern = /```html\n([\s\S]*?)\n```/;
 
@@ -49,11 +46,20 @@ Your response must include the JSON block.`;
 export const postActionResponseFooter = `Choose any combination of [LIKE], [RETWEET], [QUOTE], and [REPLY] that are appropriate. Each action must be on its own line. Your response must only include the chosen actions.`;
 
 
+export interface ActionResponse {
+    like: boolean;
+    retweet: boolean;
+    quote: boolean;
+    quoteVal: boolean;
+    reply: boolean;
+}
+
 export const parseActionResponseFromText = (text: string): { actions: ActionResponse } => {
     const actions: ActionResponse = {
         like: false,
         retweet: false,
         quote: false,
+        quoteVal: false,
         reply: false
     };
     
@@ -61,12 +67,14 @@ export const parseActionResponseFromText = (text: string): { actions: ActionResp
     const likePattern = /\[LIKE\]/i;
     const retweetPattern = /\[RETWEET\]/i;
     const quotePattern = /\[QUOTE\]/i;
+    const quoteValPattern = /\[QUOTE-VAL\]/i;
     const replyPattern = /\[REPLY\]/i;
     
     // Check with regex
     actions.like = likePattern.test(text);
     actions.retweet = retweetPattern.test(text);
     actions.quote = quotePattern.test(text);
+    actions.quoteVal = quoteValPattern.test(text);
     actions.reply = replyPattern.test(text);
     
     // Also do line by line parsing as backup
@@ -76,6 +84,7 @@ export const parseActionResponseFromText = (text: string): { actions: ActionResp
         if (trimmed === '[LIKE]') actions.like = true;
         if (trimmed === '[RETWEET]') actions.retweet = true;
         if (trimmed === '[QUOTE]') actions.quote = true;
+        if (trimmed === '[QUOTE-VAL]') actions.quoteVal = true;
         if (trimmed === '[REPLY]') actions.reply = true;
     }
     

@@ -632,6 +632,7 @@ export interface TweetAction {
     like: boolean;
     retweet: boolean;
     quote?: boolean;
+    quoteVal?: boolean;
     reply?: boolean;
 }
 
@@ -643,6 +644,7 @@ export interface ActionResponse {
     like: boolean;
     retweet: boolean;
     quote?: boolean;
+    quoteVal?: boolean;
     reply?: boolean;
 }
 
