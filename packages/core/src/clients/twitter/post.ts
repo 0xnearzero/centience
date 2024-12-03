@@ -78,7 +78,7 @@ Current Tweet:
 export class TwitterPostClient extends ClientBase {
     private shouldGenerateImage(): boolean {
         // 30% chance to generate an image
-        return Math.random() < 0.99;
+        return Math.random() < 0.3;
     }
 
     onReady() {
