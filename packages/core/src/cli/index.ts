@@ -18,6 +18,7 @@ import { Arguments } from "../types/index.ts";
 import { loadActionConfigs, loadCustomActions } from "./config.ts";
 import { elizaLogger } from "../index.ts";
 import path from "path";
+import { ImageGenModel } from "../core/imageGenModels.ts";
 
 export async function initializeClients(
     character: Character,
@@ -156,6 +157,7 @@ export async function createAgentRuntime(
         databaseAdapter: db,
         token,
         modelProvider: character.modelProvider,
+        imageGenModel: ImageGenModel.Replicate,
         evaluators: [],
         character,
         providers: [Provider.timeProvider, Provider.boredomProvider],
@@ -193,6 +195,7 @@ export async function createDirectRuntime(
         databaseAdapter: db,
         token,
         modelProvider: character.modelProvider,
+        imageGenModel: ImageGenModel.Replicate,
         evaluators: [],
         character,
         providers: [

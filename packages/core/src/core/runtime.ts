@@ -110,7 +110,7 @@ export class AgentRuntime implements IAgentRuntime {
     /**
      * The model to use for image generation.
      */
-    imageGenModel: ImageGenModel = ImageGenModel.TogetherAI;
+    imageGenModel: ImageGenModel = ImageGenModel.Replicate;
 
     /**
      * Local Llama if no OpenAI key is present

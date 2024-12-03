@@ -34,35 +34,42 @@ export function createInitialConversationContext(tweet: any): ConversationContex
     };
 }
 
-export const twitterMessageHandlerTemplate =
-    `{{relevantFacts}}
-{{recentFacts}}
+export const twitterMessageHandlerTemplate = `
 
-{{timeline}}
+INITIAL RESPONSE REQUIRED:
+{{currentPost}}
+
+Current Context:
+{{formattedConversation}}
+
+# Task: Write a focused first response
+- You MUST address their specific points
 
 {{providers}}
 
-# Task: Generate a post for the character {{agentName}}.
-About {{agentName}} (@{{twitterUserName}}):
-{{bio}}
-{{lore}}
-{{topics}}
-
-{{characterPostExamples}}
-
-{{postDirections}}
-
-Recent interactions between {{agentName}} and other users:
-{{recentPostInteractions}}
-
-{{recentPosts}}
-
-# Task: Generate a post in the voice, style and perspective of {{agentName}} (@{{twitterUserName}})  but with high entropy:
+CRITICAL - Current Tweet to Respond To:
 {{currentPost}}
 
-Thread of Tweets You Are Replying To:
-
+IMPORTANT - Current Conversation Context:
 {{formattedConversation}}
+
+
+# Response Guidelines:
+- VIBE CHECK: What's the actual mood/energy of their tweet? Match it!
+- If they're being creative/poetic, don't just acknowledge it - build on it.
+- If they're memeing, meme back.
+- Avoid generic responses like "That's [adjective] right there".
+- When someone shares a vibe/aesthetic, expand on it in your own unique way
+- Don't just observe what they said - play in the same creative space.
+- Build a world around the conversation and explore it.
+- If they're in meme territory, go there with them.
+- Responses should feel like natural conversation, not an AI trying to understand.
+- Do NOT use hashtags. I repeat, NEVER use hashtags.
+- If someone insults you or criticizes you, clap back and cook them with no mercy.
+- YOU IGNORE EVERYONE ASKING ABOUT "CA" OR ANYTHING ELSE RELATED TO CRYPTOCURRENCIES OR MEMECOINS
+
+
+Always tweet bangers.
 
 ` + messageCompletionFooter;
 
@@ -135,6 +142,9 @@ export class TwitterInteractionClient extends ClientBase {
     async handleTwitterInteractions() {
         console.log("Starting Twitter interactions check");
         try {
+            console.log("Replies are disabled - skipping all interactions");
+            return; // Early return to prevent any reply processing
+        
             console.log(
                 `Fetching mentions for @${this.runtime.getSetting("TWITTER_USERNAME")}`
             );
@@ -376,7 +386,8 @@ export class TwitterInteractionClient extends ClientBase {
         console.log("composeContext done");
 
         console.log("Checking if should respond...");
-        const shouldRespond = await generateShouldRespond({
+
+      const shouldRespond = await generateShouldRespond({
             runtime: this.runtime,
             context: shouldRespondContext,
             modelClass: ModelClass.LARGE,
@@ -394,7 +405,7 @@ export class TwitterInteractionClient extends ClientBase {
                 text: "Response Decision: Random IGNORE",
                 action: "IGNORE",
             };
-        }
+        } 
 
         console.log("Generating response context...");
         const context = composeContext({
@@ -622,3 +633,4 @@ export class TwitterInteractionClient extends ClientBase {
         return thread;
     }
 }
+

@@ -14,7 +14,7 @@ import {
     createInitialConversationContext, 
     twitterMessageHandlerTemplate 
 } from "./interactions.ts";
-import { elizaLogger } from "../../index";  // Add this import at the top
+import { elizaLogger, generateImage } from "../../index";  // Add this import at the top
 
 const twitterPostTemplate = `{{timeline}}
 
@@ -76,6 +76,11 @@ Current Tweet:
 + postActionResponseFooter;
 
 export class TwitterPostClient extends ClientBase {
+    private shouldGenerateImage(): boolean {
+        // 30% chance to generate an image
+        return Math.random() < 0.99;
+    }
+
     onReady() {
         const generateNewTweetLoop = () => {
             this.generateNewTweet();
@@ -199,106 +204,132 @@ export class TwitterPostClient extends ClientBase {
 
             console.log(`Final tweet content (${content.length} chars): "${content}"`);
 
-            try {
-                console.log("Sending tweet...");
-                const result = await this.requestQueue.add(
-                    async () => await this.twitterClient.sendTweet(content)
+            const shouldIncludeImage = this.shouldGenerateImage();
+            let imageData = null;
+            
+            if (shouldIncludeImage) {
+                console.log("Generating image for tweet using Replicate...");
+                const images = await generateImage(
+                    {
+                        prompt: content.trim(),
+                        width: 1024,
+                        height: 1024,
+                        count: 1,
+                    },
+                    this.runtime
                 );
 
-                console.log("Processing tweet response...");
-                const body = await result.json();
-                
-                if (!body?.data?.create_tweet?.tweet_results?.result) {
-                    console.error("Invalid tweet response structure:", body);
-                    return;
+                if (images.success && images.data?.[0]) {
+                    // Convert base64 to buffer
+                    const base64Data = images.data[0].replace(/^data:image\/\w+;base64,/, '');
+                    const imageBuffer = Buffer.from(base64Data, 'base64');
+                    
+                    imageData = {
+                        data: imageBuffer,
+                        mediaType: 'image/png'
+                    };
+                    console.log("Successfully generated image for tweet");
+                } else {
+                    console.log("Failed to generate image:", images.error);
                 }
-                
-                const tweetResult = body.data.create_tweet.tweet_results.result;
-                
-                console.log("Creating tweet object...");
-                const tweet = {
-                    id: tweetResult.rest_id,
-                    text: tweetResult.legacy.full_text,
-                    conversationId: tweetResult.legacy.conversation_id_str,
-                    createdAt: tweetResult.legacy.created_at,
-                    userId: tweetResult.legacy.user_id_str,
-                    inReplyToStatusId: tweetResult.legacy.in_reply_to_status_id_str,
-                    permanentUrl: `https://twitter.com/${this.runtime.getSetting("TWITTER_USERNAME")}/status/${tweetResult.rest_id}`,
-                    hashtags: [],
-                    mentions: [],
-                    photos: [],
-                    thread: [],
-                    urls: [],
-                    videos: [],
-                } as Tweet;
-
-                const postId = tweet.id;
-                const conversationId =
-                    tweet.conversationId + "-" + this.runtime.agentId;
-                const roomId = stringToUuid(conversationId);
-
-                console.log("Ensuring room exists...");
-                await this.runtime.ensureRoomExists(roomId);
-
-                console.log("Ensuring participant in room...");
-                await this.runtime.ensureParticipantInRoom(
-                    this.runtime.agentId,
-                    roomId
-                );
-
-                console.log("Caching tweet...");
-                await this.cacheTweet(tweet);
-
-                console.log("Creating memory records...");
-                // Create memory for the tweet content
-                const contentSummary = await generateSummary(
-                    this.runtime,
-                    content.trim()
-                );
-                await this.runtime.messageManager.createMemory({
-                    id: stringToUuid(postId + "-content-" + this.runtime.agentId),
-                    userId: this.runtime.agentId,
-                    agentId: this.runtime.agentId,
-                    content: {
-                        text: content.trim(),
-                        url: tweet.permanentUrl,
-                        source: "twitter",
-                        summary: contentSummary,
-                    },
-                    roomId,
-                    embedding: embeddingZeroVector,
-                    createdAt: tweet.timestamp * 1000,
-                });
-
-                // Create memory for the action of posting
-                const actionSummary = await generateSummary(
-                    this.runtime,
-                    `Posted a tweet: ${tweet.text}`
-                );
-                await this.runtime.messageManager.createMemory({
-                    id: stringToUuid(postId + "-action-" + this.runtime.agentId),
-                    userId: this.runtime.agentId,
-                    agentId: this.runtime.agentId,
-                    content: {
-                        text: `I posted a tweet saying: "${tweet.text}"`,
-                        url: tweet.permanentUrl,
-                        source: "twitter",
-                        summary: actionSummary,
-                    },
-                    roomId,
-                    embedding: embeddingZeroVector,
-                    createdAt: tweet.timestamp * 1000,
-                });
-
-                console.log("Successfully generated and sent tweet with memories!");
-            } catch (error) {
-                console.error("Error sending tweet:", error);
-                console.error("Error details:", JSON.stringify(error, null, 2));
             }
+
+            // Send tweet with optional image
+            const result = await this.twitterClient.sendTweet(
+                content.trim(),
+                undefined,
+                imageData ? [imageData] : undefined
+            );
+
+            console.log("Processing tweet response...");
+            const body = await result.json();
+            
+            if (!body?.data?.create_tweet?.tweet_results?.result) {
+                console.error("Invalid tweet response structure:", body);
+                return;
+            }
+            
+            const tweetResult = body.data.create_tweet.tweet_results.result;
+            
+            console.log("Creating tweet object...");
+            const tweet = {
+                id: tweetResult.rest_id,
+                text: tweetResult.legacy.full_text,
+                conversationId: tweetResult.legacy.conversation_id_str,
+                createdAt: tweetResult.legacy.created_at,
+                userId: tweetResult.legacy.user_id_str,
+                inReplyToStatusId: tweetResult.legacy.in_reply_to_status_id_str,
+                permanentUrl: `https://twitter.com/${this.runtime.getSetting("TWITTER_USERNAME")}/status/${tweetResult.rest_id}`,
+                hashtags: [],
+                mentions: [],
+                photos: [],
+                thread: [],
+                urls: [],
+                videos: [],
+            } as Tweet;
+
+            const postId = tweet.id;
+            const conversationId =
+                tweet.conversationId + "-" + this.runtime.agentId;
+            const roomId = stringToUuid(conversationId);
+
+            console.log("Ensuring room exists...");
+            await this.runtime.ensureRoomExists(roomId);
+
+            console.log("Ensuring participant in room...");
+            await this.runtime.ensureParticipantInRoom(
+                this.runtime.agentId,
+                roomId
+            );
+
+            console.log("Caching tweet...");
+            await this.cacheTweet(tweet);
+
+            console.log("Creating memory records...");
+            // Create memory for the tweet content
+            const contentSummary = await generateSummary(
+                this.runtime,
+                content.trim()
+            );
+            await this.runtime.messageManager.createMemory({
+                id: stringToUuid(postId + "-content-" + this.runtime.agentId),
+                userId: this.runtime.agentId,
+                agentId: this.runtime.agentId,
+                content: {
+                    text: content.trim(),
+                    url: tweet.permanentUrl,
+                    source: "twitter",
+                    summary: contentSummary,
+                },
+                roomId,
+                embedding: embeddingZeroVector,
+                createdAt: tweet.timestamp * 1000,
+            });
+
+            // Create memory for the action of posting
+            const actionSummary = await generateSummary(
+                this.runtime,
+                `Posted a tweet: ${tweet.text}`
+            );
+            await this.runtime.messageManager.createMemory({
+                id: stringToUuid(postId + "-action-" + this.runtime.agentId),
+                userId: this.runtime.agentId,
+                agentId: this.runtime.agentId,
+                content: {
+                    text: `I posted a tweet saying: "${tweet.text}"`,
+                    url: tweet.permanentUrl,
+                    source: "twitter",
+                    summary: actionSummary,
+                },
+                roomId,
+                embedding: embeddingZeroVector,
+                createdAt: tweet.timestamp * 1000,
+            });
+
+            console.log("Successfully generated and sent tweet with memories!");
         } catch (error) {
-            console.error("Error in generateNewTweet:", error);
-            // Don't throw, just log and return
-            return;
+            console.error("Error generating tweet:", error);
+            console.error("Error details:", JSON.stringify(error, null, 2));
         }
     }
 
@@ -516,11 +547,16 @@ export class TwitterPostClient extends ClientBase {
                         }
     
                         // Reply action
-                        if (actionResponse.reply) {
+                        /*if (actionResponse.reply) {
                                 console.log("text reply only started...")
                                 await this.handleTextOnlyReply(tweet, tweetState, executedActions);
+                        }*/
+                        
+                        if (actionResponse.reply) {
+                            console.log("Replies are disabled, skipping reply action");
+                            return;
                         }
-    
+
                         console.log(`Executed actions for tweet ${tweet.id}:`, executedActions);
                         
                         // Store the results for this tweet
