@@ -138,13 +138,20 @@ export class TwitterInteractionClient extends ClientBase {
         });
         console.log("TwitterInteractionClient initialized");
     }
-
+// DISABLE REPLIES
     async handleTwitterInteractions() {
         console.log("Starting Twitter interactions check");
-        try {
+
+      /*  try {
             console.log("Replies are disabled - skipping all interactions");
-            return; // Early return to prevent any reply processing
+            return;
+        } catch (error) {
+            console.error("Error handling Twitter interactions:", error);
+        }} */
+
         
+
+        try {
             console.log(
                 `Fetching mentions for @${this.runtime.getSetting("TWITTER_USERNAME")}`
             );
@@ -262,7 +269,7 @@ export class TwitterInteractionClient extends ClientBase {
         } catch (error) {
             console.error("Error handling Twitter interactions:", error);
         }
-    }
+    } 
 
     private async handleTweet({
         tweet,
@@ -386,8 +393,7 @@ export class TwitterInteractionClient extends ClientBase {
         console.log("composeContext done");
 
         console.log("Checking if should respond...");
-
-      const shouldRespond = await generateShouldRespond({
+        const shouldRespond = await generateShouldRespond({
             runtime: this.runtime,
             context: shouldRespondContext,
             modelClass: ModelClass.LARGE,
@@ -405,7 +411,7 @@ export class TwitterInteractionClient extends ClientBase {
                 text: "Response Decision: Random IGNORE",
                 action: "IGNORE",
             };
-        } 
+        }
 
         console.log("Generating response context...");
         const context = composeContext({
@@ -631,6 +637,5 @@ export class TwitterInteractionClient extends ClientBase {
         });
 
         return thread;
-    }
-}
-
+    } 
+} 

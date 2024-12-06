@@ -77,8 +77,8 @@ Current Tweet:
 
 export class TwitterPostClient extends ClientBase {
     private shouldGenerateImage(): boolean {
-        // 30% chance to generate an image
-        return Math.random() < 0.3;
+        // 20% chance to generate an image
+        return Math.random() < 0.2;
     }
 
     onReady() {
@@ -545,17 +545,17 @@ export class TwitterPostClient extends ClientBase {
                                 console.error('Failed to generate quote tweet:', error);
                             }
                         }
-    
+    //DISABLE REPLIES
                         // Reply action
-                        /*if (actionResponse.reply) {
+                       if (actionResponse.reply) {
                                 console.log("text reply only started...")
                                 await this.handleTextOnlyReply(tweet, tweetState, executedActions);
-                        }*/
+                        }
                         
-                        if (actionResponse.reply) {
+                    /*   if (actionResponse.reply) {
                             console.log("Replies are disabled, skipping reply action");
                             return;
-                        }
+                        } */
 
                         console.log(`Executed actions for tweet ${tweet.id}:`, executedActions);
                         
@@ -737,6 +737,7 @@ export class TwitterPostClient extends ClientBase {
     }
 
     private async handleTextOnlyReply(tweet: any, tweetState: any, executedActions: string[]) {
+
         try {
             // Create the proper conversation context for a reply
             const conversationContext = createInitialConversationContext(tweet);

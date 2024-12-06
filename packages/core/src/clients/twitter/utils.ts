@@ -14,7 +14,30 @@ export const wait = (minTime: number = 1000, maxTime: number = 3000) => {
 };
 
 export const isValidTweet = (tweet: Tweet): boolean => {
-    // Filter out tweets with too many hashtags, @s, or $ signs, probably spam or garbage
+
+    
+    // Define blocked words/phrases
+   const blockedWords = ['CA', 'solana', 'Solana', 'Phantom', 'phantom', 
+    'token', 'wen', 'sol', 'wallet', 'ca', 'collab', 'collaboration', 'collaborate'];
+    
+    // Check if tweet contains any blocked words
+    const containsBlockedWord = blockedWords.some(word => 
+        tweet.text?.toLowerCase().includes(word.toLowerCase())
+    );
+    
+    // Check for words ending in "pump" using regex
+    const pumpRegex = /\w+pump\b/i;  // \w+ matches any word characters, \b is word boundary, i flag for case-insensitive
+    const containsPumpWord = pumpRegex.test(tweet.text || '');
+
+    const dollarRegex = /\$\w+/;  // Matches $ followed by word characters
+    const containsDollarWord = dollarRegex.test(tweet.text || '');
+    
+    // If tweet contains blocked words or pump-ending words, return false
+    if (containsBlockedWord || containsPumpWord || containsDollarWord) {
+        return false;
+    }
+    
+    // Original spam checks
     const hashtagCount = (tweet.text?.match(/#/g) || []).length;
     const atCount = (tweet.text?.match(/@/g) || []).length;
     const dollarSignCount = tweet.text?.match(/\$/g) || [];
